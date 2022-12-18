@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <thread>
-
+#include <math.h>
 #include "CycleTimer.h"
 
 typedef struct {
@@ -22,6 +22,12 @@ extern void mandelbrotSerial(
     int maxIterations,
     int output[]);
 
+extern void mandelbrotSkipSerial(
+    float x0, float y0, float x1, float y1,
+    int width, int height,
+    int SkipIndex, int Skip,
+    int maxIterations,
+    int output[]);
 
 //
 // workerThreadStart --
@@ -34,8 +40,28 @@ void workerThreadStart(WorkerArgs * const args) {
     // to compute a part of the output image.  For example, in a
     // program that uses two threads, thread 0 could compute the top
     // half of the image and thread 1 could compute the bottom half.
-
     printf("Hello world from thread %d\n", args->threadId);
+    double startTime = CycleTimer::currentSeconds();
+        
+    int cur_threadId = args->threadId;
+    int totalRows = 0;
+    int startRows = 0;
+    //startRows = floor(args->height / args->numThreads) * cur_threadId;
+        
+    // if (args->threadId < args->numThreads - 1){
+    //     totalRows = floor(args->height / args->numThreads);
+    // }
+    // else {
+    //     totalRows = args->height - floor(args->height / args->numThreads) * cur_threadId;
+    // }
+    
+    // mandelbrotSerial(args->x0, args->y0, args->x1, args->y1, args->width, args->height, startRows, totalRows, args->maxIterations, args->output);
+    mandelbrotSkipSerial(args->x0, args->y0, args->x1, args->y1, args->width, args->height, args->threadId, args->numThreads, args->maxIterations, args->output);
+    double endTime = CycleTimer::currentSeconds();
+    double useTime = endTime - startTime;
+    //printf("thread %d \n uses \t [%.3f] s\n", args->threadId, useTime);
+    
+    
 }
 
 //
